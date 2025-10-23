@@ -22,4 +22,5 @@ export default function AdminRoute(){
     }, [auth?.token]);
     
     return ok ? <Outlet /> : <Spinner/>;
+    
 }
