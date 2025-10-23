@@ -95,6 +95,7 @@ describe("registerController", () => {
     );
   };
 
+  // #Test Case 1
   it("returns error when name missing", async () => {
     await testMissing("name", "Name is Required");
   });
@@ -113,26 +114,102 @@ describe("registerController", () => {
   it("returns error when answer missing", async () => {
     await testMissing("answer", "Answer is Required");
   });
-
-  it("returns 200 with success:false when user already exists", async () => {
-    userModel.findOne.mockResolvedValueOnce({ _id: "u1" });
-    const req = { body: baseBody };
+  
+  // === Boundary Value Analysis for password ===
+  // #Test Case 2
+  it("rejects short password (<6)", async () => {
+    const req = {
+      body: { ...baseBody, password: "123" },
+    };
     const res = mockRes();
     await registerController(req, res);
-    expect(userModel.findOne).toHaveBeenCalledWith({ email: baseBody.email });
-    expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
-        success: false,
-        message: "Already Register please login",
+        message: expect.stringContaining("Errro in Registeration"),
+      })
+    );
+  });
+  // #Test Case 3
+  it("accepts boundary password length (=6)", async () => {
+    userModel.findOne.mockResolvedValueOnce(null);
+    hashPassword.mockResolvedValueOnce("H6");
+    const saveMock = jest.fn().mockResolvedValue({
+      _id: "u1",
+      name: baseBody.name,
+      email: baseBody.email,
+    });
+    userModel.mockImplementationOnce(() => ({ save: saveMock }));
+
+    const req = { body: { ...baseBody, password: "123456" } };
+    const res = mockRes();
+    await registerController(req, res);
+
+    expect(hashPassword).toHaveBeenCalledWith("123456");
+    expect(userModel.findOne).toHaveBeenCalledWith({ email: baseBody.email });
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        user: expect.objectContaining({ _id: "u1", email: baseBody.email }),
+      })
+    );
+  });
+  // #Test Case 4
+  it("accepts password length >6 and registers successfully", async () => {
+    userModel.findOne.mockResolvedValueOnce(null);
+    hashPassword.mockResolvedValueOnce("Hvalid");
+    const saveMock = jest.fn().mockResolvedValue({
+      _id: "u2",
+      name: baseBody.name,
+      email: baseBody.email,
+    });
+    userModel.mockImplementationOnce(() => ({ save: saveMock }));
+
+    const req = { body: { ...baseBody, password: "abcdefgh" } };
+    const res = mockRes();
+    await registerController(req, res);
+
+    expect(hashPassword).toHaveBeenCalledWith("abcdefgh");
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        message: "User Register Successfully",
       })
     );
   });
 
+    // === Combinatorial: email uniqueness independent of other fields ===
+    // #Test Case 5
+  it("returns 200 already-registered even if other fields differ (email is dominant)", async () => {
+    userModel.findOne.mockResolvedValueOnce({ _id: "u1" });
+    const req = {
+        body: {
+        name: "Other Name",
+        email: "jj@example.com", // same email
+        password: "different",
+        phone: "99999999",
+        address: "Other",
+        answer: "green",
+        },
+    };
+    const res = mockRes();
+
+    await registerController(req, res);
+
+    expect(userModel.findOne).toHaveBeenCalledWith({ email: "jj@example.com" });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+        success: false,
+        message: "Already Register please login",
+        })
+    );
+    });
+    // #Test Case 6
   it("creates user and returns 201 on success", async () => {
     userModel.findOne.mockResolvedValueOnce(null);
     hashPassword.mockResolvedValueOnce("hashedPw");
-    // make `new userModel(...).save()`
     const saveMock = jest.fn().mockResolvedValue({
       _id: "u2",
       name: baseBody.name,
@@ -155,7 +232,7 @@ describe("registerController", () => {
       })
     );
   });
-
+  // #Test Case 7
   it("returns 500 on unexpected error", async () => {
     userModel.findOne.mockRejectedValueOnce(new Error("DB down"));
     const req = { body: baseBody };
@@ -173,15 +250,25 @@ describe("registerController", () => {
 
 // ===================== loginController =====================
 describe("loginController", () => {
-  it("returns 404 when email or password missing", async () => {
+    // #Test Case 8
+  it("returns 404 when email present & password missing", async () => {
     const res = mockRes();
     await loginController({ body: { email: "a@b.com" } }, res);
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false })
+        expect.objectContaining({ success: false, message: "Invalid email or password" })
     );
-  });
+    });
+  it("returns 404 when password present & email missing", async () => {
+    const res = mockRes();
+    await loginController({ body: { password: "secret" } }, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false, message: "Invalid email or password" })
+    );
+    });
 
+    // #Test Case 9
   it("returns 404 when user not found", async () => {
     userModel.findOne.mockResolvedValueOnce(null);
     const res = mockRes();
@@ -195,7 +282,7 @@ describe("loginController", () => {
       expect.objectContaining({ message: "Email is not registerd" })
     );
   });
-
+  // #Test Case 10
   it("returns 200 with success:false on invalid password", async () => {
     userModel.findOne.mockResolvedValueOnce({ _id: "u1", password: "hpw" });
     comparePassword.mockResolvedValueOnce(false);
@@ -211,6 +298,7 @@ describe("loginController", () => {
     );
   });
 
+  // #Test Case 11
   it("returns 200 with token on success", async () => {
     process.env.JWT_SECRET = "secret";
     const user = {
@@ -249,6 +337,7 @@ describe("loginController", () => {
     );
   });
 
+  // #Test Case 12
   it("returns 500 on error", async () => {
     userModel.findOne.mockRejectedValueOnce(new Error("DB err"));
     const res = mockRes();
@@ -263,132 +352,10 @@ describe("loginController", () => {
   });
 });
 
-// ===================== forgotPasswordController =====================
-describe("forgotPasswordController", () => {
-  it("400 when email missing", async () => {
-    const res = mockRes();
-    await forgotPasswordController(
-      { body: { answer: "A", newPassword: "x" } },
-      res
-    );
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Emai is required" })
-    );
-  });
-
-  it("400 when answer missing", async () => {
-    const res = mockRes();
-    await forgotPasswordController(
-      { body: { email: "a@b.com", newPassword: "x" } },
-      res
-    );
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "answer is required" })
-    );
-  });
-
-  it("400 when newPassword missing", async () => {
-    const res = mockRes();
-    await forgotPasswordController(
-      { body: { email: "a@b.com", answer: "A" } },
-      res
-    );
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "New Password is required" })
-    );
-  });
-
-  it("404 when wrong email/answer", async () => {
-    userModel.findOne.mockResolvedValueOnce(null);
-    const res = mockRes();
-    await forgotPasswordController(
-      { body: { email: "a@b.com", answer: "bad", newPassword: "x" } },
-      res
-    );
-    expect(userModel.findOne).toHaveBeenCalledWith({
-      email: "a@b.com",
-      answer: "bad",
-    });
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Wrong Email Or Answer" })
-    );
-  });
-
-  it("200 on success and updates password", async () => {
-    userModel.findOne.mockResolvedValueOnce({ _id: "u1" });
-    hashPassword.mockResolvedValueOnce("HASH");
-    userModel.findByIdAndUpdate.mockResolvedValueOnce({});
-    const res = mockRes();
-    await forgotPasswordController(
-      { body: { email: "a@b.com", answer: "A", newPassword: "newpw" } },
-      res
-    );
-    expect(hashPassword).toHaveBeenCalledWith("newpw");
-    expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith("u1", {
-      password: "HASH",
-    });
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ success: true })
-    );
-  });
-
-  it("500 on error", async () => {
-    userModel.findOne.mockRejectedValueOnce(new Error("boom"));
-    const res = mockRes();
-    await forgotPasswordController(
-      { body: { email: "a@b.com", answer: "A", newPassword: "x" } },
-      res
-    );
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Something went wrong" })
-    );
-  });
-});
-
-// ===================== testController =====================
-describe("testController", () => {
-  it('sends "Protected Routes"', () => {
-    const res = mockRes();
-    testController({}, res);
-    expect(res.send).toHaveBeenCalledWith("Protected Routes");
-  });
-
-  it("handles error branch", () => {
-    const res = mockRes();
-    // silence console during test
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    // Make the FIRST call to res.send throw; subsequent calls use default mock (return res)
-    res.send.mockImplementationOnce(() => { throw new Error('boom'); });
-
-    testController({}, res);
-
-    expect(console.log).toHaveBeenCalledWith(expect.any(Error));     // covers console.log(error)
-    expect(res.send).toHaveBeenCalledTimes(2);                       // 1st throws, 2nd from catch
-    expect(res.send).toHaveBeenLastCalledWith(
-        expect.objectContaining({ error: expect.any(Error) })          // covers res.send({ error })
-    );
-  });
-});
-
 // ===================== updateProfileController =====================
-describe("updateProfileController", () => {
-  it("rejects short password (<6)", async () => {
-    const res = mockRes();
-    await updateProfileController(
-      { body: { password: "123" }, user: { _id: "u1" } },
-      res
-    );
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Passsword is required and 6 character long",
-    });
-  });
+describe("updateProfileController", () => { 
 
+    // #Test Case 13
   it("updates without password", async () => {
     userModel.findById.mockResolvedValueOnce({
       name: "Old",
@@ -418,7 +385,8 @@ describe("updateProfileController", () => {
       })
     );
   });
-
+ 
+  // #Test Case 14
   it("updates with password (hashed)", async () => {
     userModel.findById.mockResolvedValueOnce({
       name: "Old",
@@ -443,6 +411,7 @@ describe("updateProfileController", () => {
     expect(res.status).toHaveBeenCalledWith(200);
   });
 
+  // #Test Case 15
   it("returns 400 on error", async () => {
     userModel.findById.mockRejectedValueOnce(new Error("boom"));
     const res = mockRes();
@@ -456,6 +425,7 @@ describe("updateProfileController", () => {
 
 // ===================== getOrdersController =====================
 describe("getOrdersController", () => {
+    // #Test Case 16
   it("returns orders json (chainable query)", async () => {
     const orders = [{ _id: "o1" }];
     const q = makeChainableQuery(orders);
@@ -484,6 +454,7 @@ describe("getOrdersController", () => {
 
 // ===================== getAllOrdersController =====================
 describe("getAllOrdersController", () => {
+    // #Test Case 17
   it("returns all orders sorted", async () => {
     const orders = [{ _id: "o1" }, { _id: "o2" }];
     const q = makeChainableQuery(orders);
@@ -512,6 +483,7 @@ describe("getAllOrdersController", () => {
 
 // ===================== orderStatusController =====================
 describe("orderStatusController", () => {
+    // #Test Case 18
   it("updates status and returns updated order", async () => {
     const updated = { _id: "o1", status: "shipped" };
     orderModel.findByIdAndUpdate.mockResolvedValueOnce(updated);

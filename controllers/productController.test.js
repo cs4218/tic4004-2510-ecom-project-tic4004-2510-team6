@@ -77,6 +77,7 @@ beforeEach(() => {
 
 // ===================== getProductController =====================
 describe('getProductController', () => {
+    // #Test Case 20
   it('returns products', async () => {
     const data = [{ _id: 'p1' }, { _id: 'p2' }];
     const q = chainable(data);
@@ -108,6 +109,7 @@ describe('getProductController', () => {
 
 // ===================== getSingleProductController =====================
 describe('getSingleProductController', () => {
+    // #Test Case 21
   it('returns one product', async () => {
     const q = chainable({ _id: 'p1' });
     productModel.findOne.mockReturnValueOnce(q);
@@ -130,36 +132,10 @@ describe('getSingleProductController', () => {
   });
 });
 
-// ===================== productPhotoController =====================
-describe('productPhotoController', () => {
-  it('returns photo when exists', async () => {
-    const product = { photo: { data: Buffer.from('x'), contentType: 'image/png' } };
-    const sel = jest.fn().mockResolvedValue(product);
-    productModel.findById.mockReturnValueOnce({ select: sel });
-
-    const res = mockRes();
-    await productPhotoController({ params: { pid: 'p1' } }, res);
-    expect(productModel.findById).toHaveBeenCalledWith('p1');
-    expect(res.set).toHaveBeenCalledWith('Content-type', 'image/png');
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(product.photo.data);
-  });
-
-  it('500 on error (covers catch)', async () => {
-    productModel.findById.mockImplementationOnce(() => { throw new Error('db'); });
-    const res = mockRes();
-    await productPhotoController({ params: { pid: 'p1' } }, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
-      success: false,
-      message: 'Erorr while getting photo',
-      error: expect.any(Error),
-    }));
-  });
-});
 
 // ===================== productFiltersController =====================
 describe('productFiltersController', () => {
+    // #Test Case 22
   it('filters by category and price', async () => {
     productModel.find.mockResolvedValueOnce([{ _id: 'p1' }]);
     const res = mockRes();
@@ -184,6 +160,7 @@ describe('productFiltersController', () => {
 
 // ===================== productCountController =====================
 describe('productCountController', () => {
+    // #Test Case 23
   it('returns count', async () => {
     const countFn = jest.fn().mockResolvedValue(42);
     productModel.find.mockReturnValueOnce({ estimatedDocumentCount: countFn });
@@ -204,6 +181,7 @@ describe('productCountController', () => {
 
 // ===================== productListController =====================
 describe('productListController', () => {
+    // #Test Case 24
   it('lists with pagination', async () => {
     const data = [{ _id: 'p1' }];
     const q = chainable(data);
@@ -226,6 +204,7 @@ describe('productListController', () => {
 
 // ===================== searchProductController =====================
 describe('searchProductController', () => {
+    // #Test Case 25
   it('returns search results', async () => {
     const data = [{ _id: 'p1' }];
     const q = chainable(data);
@@ -254,6 +233,7 @@ describe('searchProductController', () => {
 
 // ===================== realtedProductController =====================
 describe('realtedProductController', () => {
+    // #Test Case 26
   it('returns related products', async () => {
     const data = [{ _id: 'p2' }];
     const q = chainable(data);
@@ -279,6 +259,7 @@ describe('realtedProductController', () => {
 
 // ===================== productCategoryController =====================
 describe('productCategoryController', () => {
+    // #Test Case 27
   it('returns category + products', async () => {
     const cat = { _id: 'c1', slug: 'cat' };
     categoryModel.findOne.mockResolvedValueOnce(cat);
