@@ -1,8 +1,6 @@
 import {
   registerController,
   loginController,
-  forgotPasswordController,
-  testController,
   updateProfileController,
   getOrdersController,
   getAllOrdersController,

@@ -1,9 +1,5 @@
 import {
-  createCategoryController,
-  updateCategoryController,
   categoryControlller,
-  singleCategoryController,
-  deleteCategoryCOntroller,
 } from './categoryController.js';
 
 import categoryModel from '../models/categoryModel.js';
