@@ -2,7 +2,6 @@ import {
   registerController,
   loginController,
   updateProfileController,
-  getOrdersController,
   getAllOrdersController,
   orderStatusController,
 } from "./authController.js";
@@ -363,7 +362,7 @@ describe("updateProfileController", () => {
     await updateProfileController({ body: {}, user: { _id: "u1" } }, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Error While Update profile" })
+      expect.objectContaining({ message: "Error WHile Update profile" })
     );
   });
 });
