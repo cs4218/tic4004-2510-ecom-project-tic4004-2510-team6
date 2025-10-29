@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1761722912548" clover="3.2.0">
-  <project timestamp="1761722912548" name="All files">
+<coverage generated="1761726354623" clover="3.2.0">
+  <project timestamp="1761726354623" name="All files">
     <metrics statements="240" coveredstatements="107" conditionals="76" coveredconditionals="32" methods="25" coveredmethods="12" elements="341" coveredelements="151" complexity="0" loc="240" ncloc="240" packages="1" files="3" classes="3"/>
     <file name="authController.js" path="C:\xampp\htdocs\tic4004-2510-ecom-project-tic4004-2510-team6\controllers\authController.js">
       <metrics statements="91" coveredstatements="53" conditionals="44" coveredconditionals="29" methods="8" coveredmethods="5"/>
