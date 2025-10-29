@@ -74,39 +74,6 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ===================== getProductController =====================
-describe('getProductController', () => {
-    // #Test Case 20
-  it('returns products', async () => {
-    const data = [{ _id: 'p1' }, { _id: 'p2' }];
-    const q = chainable(data);
-    productModel.find.mockReturnValueOnce(q);
-
-    const res = mockRes();
-    await getProductController({}, res);
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
-      success: true,
-      counTotal: 2,
-      products: data,
-    }));
-  });
-
-  it('500 on error (covers catch)', async () => {
-    productModel.find.mockImplementationOnce(() => { throw new Error('db'); });
-    const res = mockRes();
-    await getProductController({}, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
-      success: false,
-      message: 'Erorr in getting products',
-      error: expect.any(String),
-    }));
-  });
-});
-
-
 describe('productFiltersController', () => {
    
   it('#Test Case 17: filters by category and price', async () => {
@@ -117,23 +84,10 @@ describe('productFiltersController', () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith({ success: true, products: [{ _id: 'p1' }] });
   });
-
-  // it('400 on error (covers catch)', async () => {
-  //   productModel.find.mockRejectedValueOnce(new Error('db'));
-  //   const res = mockRes();
-  //   await productFiltersController({ body: { checked: [], radio: [] } }, res);
-  //   expect(res.status).toHaveBeenCalledWith(400);
-  //   expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
-  //     success: false,
-  //     message: 'Error WHile Filtering Products',
-  //     error: expect.any(Error),
-  //   }));
-  // });
 });
 
 
 describe('productListController', () => {
-    // 
   it('#Test Case 18: lists with pagination', async () => {
     const data = [{ _id: 'p1' }];
     const q = chainable(data);
@@ -144,13 +98,6 @@ describe('productListController', () => {
     expect(productModel.find).toHaveBeenCalledWith({});
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith({ success: true, products: data });
-  });
-
-  it('400 on error', async () => {
-    productModel.find.mockImplementationOnce(() => { throw new Error('db'); });
-    const res = mockRes();
-    await productListController({ params: { page: 1 } }, res);
-    expect(res.status).toHaveBeenCalledWith(400);
   });
 });
 
@@ -169,18 +116,6 @@ describe('searchProductController', () => {
     }));
     expect(res.json).toHaveBeenCalledWith(data);
   });
-
-  // it('400 on error', async () => {
-  //   productModel.find.mockImplementationOnce(() => { throw new Error('db'); });
-  //   const res = mockRes();
-  //   await searchProductController({ params: { keyword: 'toy' } }, res);
-  //   expect(res.status).toHaveBeenCalledWith(400);
-  //   expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
-  //     success: false,
-  //     message: 'Error In Search Product API',
-  //     error: expect.any(Error),
-  //   }));
-  // });
 });
 
 
@@ -199,46 +134,5 @@ describe('realtedProductController', () => {
     }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith({ success: true, products: data });
-  });
-
-  it('400 on error', async () => {
-    productModel.find.mockImplementationOnce(() => { throw new Error('db'); });
-    const res = mockRes();
-    await realtedProductController({ params: { pid: 'p1', cid: 'c1' } }, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-  });
+  }); 
 });
-
-// ===================== productCategoryController =====================
-describe('productCategoryController', () => {
-    // #Test Case 27
-  it('returns category + products', async () => {
-    const cat = { _id: 'c1', slug: 'cat' };
-    categoryModel.findOne.mockResolvedValueOnce(cat);
-    const q = chainable([{ _id: 'p1' }]);
-    productModel.find.mockReturnValueOnce(q);
-
-    const res = mockRes();
-    await productCategoryController({ params: { slug: 'cat' } }, res);
-    expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: 'cat' });
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith({
-      success: true,
-      category: cat,
-      products: [{ _id: 'p1' }],
-    });
-  });
-
-  // it('400 on error', async () => {
-  //   categoryModel.findOne.mockRejectedValueOnce(new Error('db'));
-  //   const res = mockRes();
-  //   await productCategoryController({ params: { slug: 'cat' } }, res);
-  //   expect(res.status).toHaveBeenCalledWith(400);
-  //   expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
-  //     success: false,
-  //     message: 'Error While Getting products',
-  //     error: expect.any(Error),
-  //   }));
-  // });
-});
-

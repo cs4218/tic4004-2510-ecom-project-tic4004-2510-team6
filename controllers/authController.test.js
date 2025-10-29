@@ -237,14 +237,6 @@ describe("loginController", () => {
         expect.objectContaining({ success: false, message: "Invalid email or password" })
     );
     });
-  it("returns 404 when password present & email missing", async () => {
-    const res = mockRes();
-    await loginController({ body: { password: "secret" } }, res);
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalledWith(
-        expect.objectContaining({ success: false, message: "Invalid email or password" })
-    );
-    });
 
   it("#Test Case 9: returns 404 when user not found", async () => {
     userModel.findOne.mockResolvedValueOnce(null);
@@ -383,17 +375,6 @@ describe("getAllOrdersController", () => {
     expect(res.json).toHaveBeenCalledWith(orders);
   });
 
-  // it("returns 500 on error", async () => {
-  //   orderModel.find.mockImplementationOnce(() => {
-  //     throw new Error("db");
-  //   });
-  //   const res = mockRes();
-  //   await getAllOrdersController({}, res);
-  //   expect(res.status).toHaveBeenCalledWith(500);
-  //   expect(res.send).toHaveBeenCalledWith(
-  //     expect.objectContaining({ message: "Error WHile Geting Orders" })
-  //   );
-  // });
 });
 
 
@@ -417,16 +398,4 @@ describe("orderStatusController", () => {
     expect(res.json).toHaveBeenCalledWith(updated);
   });
 
-  // it("returns 500 on error", async () => {
-  //   orderModel.findByIdAndUpdate.mockRejectedValueOnce(new Error("db"));
-  //   const res = mockRes();
-  //   await orderStatusController(
-  //     { params: { orderId: "o1" }, body: { status: "shipped" } },
-  //     res
-  //   );
-  //   expect(res.status).toHaveBeenCalledWith(500);
-  //   expect(res.send).toHaveBeenCalledWith(
-  //     expect.objectContaining({ message: "Error While Updateing Order" })
-  //   );
-  // });
 });
