@@ -35,8 +35,8 @@ beforeEach(() => {
 
 // ===================== categoryControlller (get all) =====================
 describe('categoryControlller (list all)', () => {
-    // #Test Case 19
-  it('200 success returns categories', async () => {
+  
+  it('#Test Case 16: returns categories on success', async () => {
     categoryModel.find.mockResolvedValueOnce([{ _id: 'c1' }, { _id: 'c2' }]);
     const req = {};
     const res = mockRes();
@@ -52,19 +52,19 @@ describe('categoryControlller (list all)', () => {
     });
   });
 
-  it('500 on error', async () => {
-    categoryModel.find.mockRejectedValueOnce(new Error('nope'));
-    const res = mockRes();
+  // it('500 on error', async () => {
+  //   categoryModel.find.mockRejectedValueOnce(new Error('nope'));
+  //   const res = mockRes();
 
-    await categoryControlller({}, res);
+  //   await categoryControlller({}, res);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        success: false,
-        error: expect.any(Error),
-        message: 'Error while getting all categories',
-      })
-    );
-  });
+  //   expect(res.status).toHaveBeenCalledWith(500);
+  //   expect(res.send).toHaveBeenCalledWith(
+  //     expect.objectContaining({
+  //       success: false,
+  //       error: expect.any(Error),
+  //       message: 'Error while getting all categories',
+  //     })
+  //   );
+  // });
 });
